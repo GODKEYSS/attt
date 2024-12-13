@@ -1,45 +1,75 @@
-# hệ mật mã hoán vị toàn cục python
+def permute_encrypt(plaintext, key):
+    """
+    Hàm mã hóa văn bản rõ bằng hoán vị.
+    """
+    if len(plaintext) != len(key):
+        raise ValueError("Độ dài văn bản và khóa phải giống nhau.")
+    
+    plaintext = plaintext.upper()
+    ciphertext = [''] * len(plaintext)
+    for i in range(len(plaintext)):
+        ciphertext[key[i] - 1] = plaintext[i]
+    return ''.join(ciphertext)
 
-import random
+def permute_decrypt(ciphertext, key):
+    """
+    Hàm giải mã văn bản mã hóa bằng hoán vị.
+    """
+    if len(ciphertext) != len(key):
+        raise ValueError("Độ dài văn bản mã hóa và khóa phải giống nhau.")
+    
+    plaintext = [''] * len(ciphertext)
+    for i in range(len(ciphertext)):
+        plaintext[i] = ciphertext[key.index(i + 1)]
+    return ''.join(plaintext)
 
+def permute_encrypt_blocks(plaintext, key, m):
+    """
+    Hàm mã hóa văn bản theo từng nhóm m ký tự.
+    """
+    if len(key) != m:
+        raise ValueError("Độ dài của khóa phải bằng số ký tự mỗi nhóm (m).")
+    
+    # Chia văn bản thành các nhóm m ký tự
+    blocks = [plaintext[i:i + m] for i in range(0, len(plaintext), m)]
+    
+    ciphertext = ""
+    for block in blocks:
+        # Nếu nhóm cuối không đủ m ký tự, thêm ký tự đệm
+        if len(block) < m:
+            block += " " * (m - len(block))
+        
+        # Mã hóa từng nhóm
+        ciphertext += permute_encrypt(block, key)
+    
+    return ciphertext.strip()
 
-# hàm sinh khóa hoán vị
-def generate_permutation_key(n):
-    """Sinh khóa hoán vị ngẫu nhiên."""
-    if n <= 0:
-        raise ValueError("Độ dài thông điệp phải lớn hơn 0.")
-    key = list(range(n))
-    random.shuffle(key)
-    return key
+def permute_decrypt_blocks(ciphertext, key, m):
+    """
+    Hàm giải mã văn bản theo từng nhóm m ký tự.
+    """
+    if len(key) != m:
+        raise ValueError("Độ dài của khóa phải bằng số ký tự mỗi nhóm (m).")
+    
+    # Chia văn bản thành các nhóm m ký tự
+    blocks = [ciphertext[i:i + m] for i in range(0, len(ciphertext), m)]
+    
+    plaintext = ""
+    for block in blocks:
+        # Giải mã từng nhóm
+        plaintext += permute_decrypt(block, key)
+    
+    return plaintext.strip()
 
-# hàm mã hóa
-def encrypt(message, key):
-    """Mã hóa thông điệp bằng khóa hoán vị."""
-    if len(message) != len(key):
-        raise ValueError("Độ dài thông điệp và khóa không khớp.")
-    encrypted = ''.join(message[key[i]] for i in range(len(key)))
-    return encrypted
-
-# hàm giải mã
-def decrypt(encrypted_message, key):
-    """Giải mã thông điệp bằng khóa hoán vị ngược."""
-    if len(encrypted_message) != len(key):
-        raise ValueError("Độ dài bản mã và khóa không khớp.")
-    n = len(key)
-    inverse_key = [0] * n
-    for i in range(n):
-        inverse_key[key[i]] = i
-    decrypted = ''.join(encrypted_message[inverse_key[i]] for i in range(n))
-    return decrypted
-
-message = "HELLO"
-key = generate_permutation_key(len(message))
-print("Khóa hoán vị:", key)
+# Ví dụ sử dụng
+plaintext = "HENTOITHUBAY"
+key = [3, 4, 1, 2, 6, 5]  # Khóa hoán vị, bắt đầu từ 1
+m = 6  # Kích thước mỗi nhóm
 
 # Mã hóa
-encrypted_message = encrypt(message, key)
-print("Thông điệp mã hóa:", encrypted_message)
+ciphertext = permute_encrypt_blocks(plaintext, key, m)
+print(f"Ciphertext: {ciphertext}")
 
 # Giải mã
-decrypted_message = decrypt(encrypted_message, key)
-print("Thông điệp giải mã:", decrypted_message)
+decrypted_text = permute_decrypt_blocks(ciphertext, key, m)
+print(f"Decrypted text: {decrypted_text}")
