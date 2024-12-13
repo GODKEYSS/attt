@@ -1,75 +1,78 @@
-def permute_encrypt(plaintext, key):
+def encrypt(text, key):
     """
-    Hàm mã hóa văn bản rõ bằng hoán vị.
-    """
-    if len(plaintext) != len(key):
-        raise ValueError("Độ dài văn bản và khóa phải giống nhau.")
-    
-    plaintext = plaintext.upper()
-    ciphertext = [''] * len(plaintext)
-    for i in range(len(plaintext)):
-        ciphertext[key[i] - 1] = plaintext[i]
-    return ''.join(ciphertext)
+    Mã hóa văn bản sử dụng hệ mật mã hoán vị.
 
-def permute_decrypt(ciphertext, key):
-    """
-    Hàm giải mã văn bản mã hóa bằng hoán vị.
-    """
-    if len(ciphertext) != len(key):
-        raise ValueError("Độ dài văn bản mã hóa và khóa phải giống nhau.")
-    
-    plaintext = [''] * len(ciphertext)
-    for i in range(len(ciphertext)):
-        plaintext[i] = ciphertext[key.index(i + 1)]
-    return ''.join(plaintext)
+    Args:
+        text (str): Văn bản rõ cần mã hóa.
+        key (list[int]): Khóa hoán vị.
 
-def permute_encrypt_blocks(plaintext, key, m):
+    Returns:
+        str: Văn bản đã mã hóa.
     """
-    Hàm mã hóa văn bản theo từng nhóm m ký tự.
+    block_size = len(key)
+    encrypted_text = []
+
+    # Chia văn bản thành các khối độ dài bằng độ dài của khóa
+    for i in range(0, len(text), block_size):
+        block = text[i:i + block_size]
+        encrypted_text.append(permute_block(block, key))
+
+    return ''.join(encrypted_text)
+
+def decrypt(text, key):
     """
-    if len(key) != m:
-        raise ValueError("Độ dài của khóa phải bằng số ký tự mỗi nhóm (m).")
-    
-    # Chia văn bản thành các nhóm m ký tự
-    blocks = [plaintext[i:i + m] for i in range(0, len(plaintext), m)]
-    
-    ciphertext = ""
-    for block in blocks:
-        # Nếu nhóm cuối không đủ m ký tự, thêm ký tự đệm
-        if len(block) < m:
-            block += " " * (m - len(block))
-        
-        # Mã hóa từng nhóm
-        ciphertext += permute_encrypt(block, key)
-    
-    return ciphertext.strip()
+    Giải mã văn bản sử dụng hệ mật mã hoán vị.
 
-def permute_decrypt_blocks(ciphertext, key, m):
+    Args:
+        text (str): Văn bản đã mã hóa.
+        key (list[int]): Khóa hoán vị.
+
+    Returns:
+        str: Văn bản được giải mã.
     """
-    Hàm giải mã văn bản theo từng nhóm m ký tự.
+    block_size = len(key)
+    reverse_key = [0] * block_size
+
+    # Tạo khóa ngược
+    for i, val in enumerate(key):
+        reverse_key[val] = i
+
+    decrypted_text = []
+
+    # Giải mã các khối
+    for i in range(0, len(text), block_size):
+        block = text[i:i + block_size]
+        decrypted_text.append(permute_block(block, reverse_key))
+
+    return ''.join(decrypted_text)
+
+def permute_block(block, key):
     """
-    if len(key) != m:
-        raise ValueError("Độ dài của khóa phải bằng số ký tự mỗi nhóm (m).")
-    
-    # Chia văn bản thành các nhóm m ký tự
-    blocks = [ciphertext[i:i + m] for i in range(0, len(ciphertext), m)]
-    
-    plaintext = ""
-    for block in blocks:
-        # Giải mã từng nhóm
-        plaintext += permute_decrypt(block, key)
-    
-    return plaintext.strip()
+    Hoán vị các ký tự trong khối theo khóa.
 
-# Ví dụ sử dụng
-plaintext = "HENTOITHUBAY"
-key = [3, 4, 1, 2, 6, 5]  # Khóa hoán vị, bắt đầu từ 1
-m = 6  # Kích thước mỗi nhóm
+    Args:
+        block (str): Khối văn bản.
+        key (list[int]): Khóa hoán vị.
 
-# Mã hóa
-ciphertext = permute_encrypt_blocks(plaintext, key, m)
-print(f"Ciphertext: {ciphertext}")
+    Returns:
+        str: Khối sau khi hoán vị.
+    """
+    permuted = [''] * len(key)
 
-# Giải mã
-decrypted_text = permute_decrypt_blocks(ciphertext, key, m)
-print(f"Decrypted text: {decrypted_text}")
+    # Hoán vị các ký tự trong khối
+    for i, char in enumerate(block):
+        permuted[key[i]] = char
+
+    return ''.join(permuted)
+
+if __name__ == "__main__":
+    plain_text = "HELLOWORLD"
+    key = [3, 1, 4, 2, 0]  # Khóa hoán vị
+
+    # Mã hóa
+    encrypted_text = encrypt(plain_text, key)
+    print("Văn bản mã hóa:", encrypted_text)
+
+    # Giải mã
+    decrypted_text = decrypt(encrypted_text, key)
+    print("Văn bản giải mã:", decrypted_text)
